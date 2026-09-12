@@ -1,0 +1,27 @@
+name: Validate Control67Tmux
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  shell-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate shell syntax
+        run: bash -n scripts/ci-milena-proot.sh
+
+      - name: Check forbidden secret material
+        run: |
+          if grep -RInE '(ghp_[A-Za-z0-9_]+|github_pat_[A-Za-z0-9_]+|BEGIN [A-Z ]+PRIVATE KEY)' . --exclude-dir=.git; then
+            echo 'Potential secret material detected'
+            exit 1
+          fi
