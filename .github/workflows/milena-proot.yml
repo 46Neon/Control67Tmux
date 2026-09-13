@@ -20,12 +20,16 @@ jobs:
       - name: Checkout Control67Tmux
         uses: actions/checkout@v4
 
-      - name: Preflight
-        run: bash scripts/runner-preflight.sh proot
+      - name: Validate Milena, cppcheck and diagnostics
+        env:
+          CONTROL67_ARTIFACT_DIR: ${{ runner.temp }}/control67-artifacts
+          CONTROL67_RUN_BENCHMARKS: '0'
+        run: bash scripts/validate-proot.sh
 
-      - name: Validate Milena
-        run: bash scripts/ci-milena-proot.sh
-
-      - name: Collect diagnostics on failure
-        if: failure()
-        run: bash scripts/collect-diagnostics.sh || true
+      - name: Upload validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: control67-proot-${{ github.run_id }}
+          path: ${{ runner.temp }}/control67-artifacts
+          if-no-files-found: warn
