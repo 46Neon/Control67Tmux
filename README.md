@@ -32,7 +32,16 @@ Termux inicia Debian y mantiene el proceso; las pruebas se ejecutan dentro de De
 
 ## Estado
 
-Proyecto inicial de arquitectura. No contiene tokens, credenciales ni endpoints privados.
+Proyecto inicial implementado. Incluye scripts de preflight, diagnóstico, CI para Debian/proot, CI nativa de Termux y configuración controlada de runners ARM64. No contiene tokens, credenciales ni endpoints privados.
+
+Los runners todavía deben instalarse en el dispositivo físico del usuario; este repositorio no puede iniciar un runner que no esté conectado.
+
+## Runners
+
+- `milena-proot`: Debian dentro de `proot-distro`.
+- `milena-termux`: Termux nativo.
+
+Los workflows de runners solo se activan con cambios en `main` o manualmente. No se ejecutan sobre pull requests para evitar exponer un runner persistente a código no confiable.
 
 ## Seguridad
 
