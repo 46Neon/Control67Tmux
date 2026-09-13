@@ -7,6 +7,7 @@ mkdir -p "$ARTIFACT_DIR"
 
 export CONTROL67_ARTIFACT_DIR="$ARTIFACT_DIR"
 export CONTROL67_DIAGNOSTICS_DIR="$ARTIFACT_DIR"
+trap 'bash "$SCRIPT_DIR/rotate-logs.sh" || true' EXIT
 
 bash "$SCRIPT_DIR/runner-preflight.sh" termux
 bash "$SCRIPT_DIR/collect-diagnostics.sh"
