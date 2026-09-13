@@ -11,8 +11,13 @@ esac
 RUNNER_REPOSITORY="${RUNNER_REPOSITORY:-46Neon/Control67Tmux}"
 : "${RUNNER_VERSION:?Define RUNNER_VERSION con una versión publicada de actions/runner}"
 RUNNER_ROOT="${RUNNER_ROOT:-$HOME/control67-runner-$ROLE}"
-RUNNER_LABELS="${RUNNER_LABELS:-self-hosted,linux,ARM64,milena-$ROLE}"
-RUNNER_ARCH="${RUNNER_ARCH:-arm64}"
+case "${RUNNER_ARCH:-$(uname -m)}" in
+  aarch64|arm64) RUNNER_ARCH='arm64'; DEFAULT_LABEL='ARM64' ;;
+  x86_64|amd64) RUNNER_ARCH='x64'; DEFAULT_LABEL='X64' ;;
+  *) echo 'Arquitectura no soportada por esta configuración de runner.' >&2; exit 4 ;;
+esac
+
+RUNNER_LABELS="${RUNNER_LABELS:-self-hosted,linux,$DEFAULT_LABEL,milena-$ROLE}"
 
 command -v curl >/dev/null 2>&1 || { echo 'Falta curl' >&2; exit 3; }
 command -v tar >/dev/null 2>&1 || { echo 'Falta tar' >&2; exit 3; }
