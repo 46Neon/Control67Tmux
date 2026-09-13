@@ -1,0 +1,41 @@
+name: Control67 Termux health
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: control67-termux-health
+  cancel-in-progress: false
+
+jobs:
+  health:
+    runs-on: [self-hosted, linux, ARM64, milena-termux]
+    timeout-minutes: 10
+    steps:
+      - name: Checkout Control67Tmux
+        uses: actions/checkout@v4
+
+      - name: Estado controlado de Termux
+        env:
+          CONTROL67_LOG_DIR: ${{ runner.temp }}/control67-termux-logs
+        run: bash scripts/control-termux.sh status
+
+      - name: Estado controlado de Debian/proot
+        run: bash scripts/control-proot.sh status
+
+      - name: Diagnósticos
+        if: always()
+        env:
+          CONTROL67_LOG_DIR: ${{ runner.temp }}/control67-termux-logs
+        run: bash scripts/control-termux.sh diagnostics
+
+      - name: Publicar diagnóstico
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: control67-termux-health-${{ github.run_id }}
+          path: ${{ runner.temp }}/control67-termux-logs
+          if-no-files-found: warn
