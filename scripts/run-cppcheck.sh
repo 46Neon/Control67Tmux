@@ -4,6 +4,8 @@ set -Eeuo pipefail
 ROOT="${1:-${MILENA_WORKSPACE:-$HOME/workspace/Milena}}"
 ARTIFACT_DIR="${CONTROL67_ARTIFACT_DIR:-$HOME/.control67/artifacts}"
 REPORT="$ARTIFACT_DIR/cppcheck.xml"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/resource-policy.sh"
 
 command -v cppcheck >/dev/null 2>&1 || {
   echo 'cppcheck no está instalado.' >&2
@@ -15,7 +17,7 @@ command -v cppcheck >/dev/null 2>&1 || {
 }
 
 mkdir -p "$ARTIFACT_DIR"
-cppcheck \
+run_limited cppcheck \
   --enable=warning,performance,portability \
   --std=c17 \
   --language=c \
