@@ -1,54 +1,80 @@
 # Control67Tmux
 
-Puente seguro para coordinar pruebas CI/CD de Milena desde Debian ejecutado dentro de Termux.
+Plano de control seguro para administrar Termux y Debian ejecutado mediante `proot-distro`.
 
-## Objetivo
+Milena es solamente un perfil opcional de trabajo. El objetivo principal de Control67Tmux es controlar el entorno Termux, sus runners, sus diagnósticos y sus límites de ejecución.
 
-Control67Tmux no expone una terminal pública ni acepta comandos arbitrarios. Su propósito es ejecutar un conjunto limitado de tareas verificables:
+## Capacidades principales
 
-- actualizar únicamente `main`;
-- compilar Milena con GCC y Clang;
-- ejecutar la suite de pruebas;
-- ejecutar sanitizadores;
-- ejecutar análisis estático;
-- guardar logs y códigos de salida.
+- comprobar la salud de Termux;
+- comprobar el estado de Debian/proot-distro;
+- iniciar y detener el runner local;
+- recopilar diagnósticos;
+- rotar logs;
+- aplicar límites de recursos;
+- ejecutar perfiles autorizados;
+- conservar artefactos sin secretos;
+- evitar comandos arbitrarios y terminales públicas.
 
-## Diseño
+## Componentes
 
 ```text
-GitHub Actions / coordinador
-          |
-          v
-Runner autenticado en Debian/proot-distro
-          |
-          v
-scripts/ci-milena-proot.sh
-          |
-          v
-Milena: compilación, pruebas y sanitizadores
+Termux
+├── control-termux.sh
+├── control-proot.sh
+├── runner local
+└── logs/diagnósticos
+    └── Debian mediante proot-distro
+        └── perfiles de trabajo autorizados
 ```
 
-Termux inicia Debian y mantiene el proceso; las pruebas se ejecutan dentro de Debian, no en el entorno nativo de Android.
+## Perfiles
 
-## Estado
+### Control del dispositivo
 
-Proyecto inicial implementado. Incluye scripts de preflight, diagnóstico, CI para Debian/proot, CI nativa de Termux y configuración controlada de runners ARM64. No contiene tokens, credenciales ni endpoints privados.
+```text
+scripts/control-termux.sh
+scripts/control-proot.sh
+```
 
-Los runners todavía deben instalarse en el dispositivo físico del usuario; este repositorio no puede iniciar un runner que no esté conectado.
+Comandos permitidos:
 
-## Runners
+```text
+status
+diagnostics
+runner-start
+runner-stop
+logs
+```
 
-- `milena-proot`: Debian dentro de `proot-distro`.
-- `milena-termux`: Termux nativo.
+### Perfil CI de Milena
 
-Los workflows de runners solo se activan con cambios en `main` o manualmente. No se ejecutan sobre pull requests para evitar exponer un runner persistente a código no confiable.
+```text
+scripts/ci-milena-proot.sh
+scripts/termux-native.sh
+scripts/validate-proot.sh
+scripts/validate-termux.sh
+```
+
+Este perfil solo ejecuta compilaciones y pruebas autorizadas. No modifica automáticamente el código de Milena.
 
 ## Seguridad
 
-- permitir solo el repositorio configurado;
-- permitir solo la rama `main`;
-- no ejecutar comandos recibidos desde internet;
-- usar una allowlist de tareas;
-- aplicar timeout y límites de recursos;
-- no guardar secretos en el repositorio;
-- conservar logs sin credenciales.
+- solo se permite el repositorio configurado;
+- solo se permite la rama `main`;
+- no se ejecutan comandos recibidos desde internet;
+- las tareas están en una allowlist;
+- los runners no se exponen mediante puertos entrantes;
+- se aplican timeouts y límites de recursos;
+- no se guardan tokens en el repositorio;
+- los workflows de runners no ejecutan pull requests externos.
+
+## Workflows
+
+```text
+control-termux.yml       Estado del entorno Termux
+milena-proot.yml         Perfil opcional Debian/proot
+milena-termux.yml        Perfil opcional Termux nativo
+milena-benchmarks.yml    Benchmarks manuales
+validate.yml             Validación del repositorio
+```
