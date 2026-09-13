@@ -9,6 +9,9 @@ BRANCH="${MILENA_BRANCH:-main}"
 WORKSPACE="${MILENA_WORKSPACE:-$HOME/workspace/Milena}"
 JOBS="${CONTROL67_JOBS:-2}"
 LOG_DIR="${CONTROL67_LOG_DIR:-$HOME/.control67/logs}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# La política debe pertenecer al checkout confiable de Control67Tmux.
+source "$SCRIPT_DIR/resource-policy.sh"
 
 if [[ "$BRANCH" != "main" ]]; then
     echo "ERROR: Control67Tmux solo permite la rama main" >&2
@@ -38,24 +41,23 @@ cd "$WORKSPACE"
 git fetch --prune origin "$BRANCH"
 git checkout --detach "origin/$BRANCH"
 
-make clean
-make CC=gcc \
+run_limited make clean
+run_limited env CC=gcc \
     CFLAGS='-std=c17 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror -O2 -Iinclude' \
-    LDFLAGS='-lm' strict
+    LDFLAGS='-lm' make strict
 
-make clean
-make CC=clang \
+run_limited make clean
+run_limited env CC=clang \
     CFLAGS='-std=c17 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror -O2 -Iinclude' \
-    LDFLAGS='-lm' test
+    LDFLAGS='-lm' make test
 
-ASAN_OPTIONS='detect_leaks=1:halt_on_error=1' \
-UBSAN_OPTIONS='print_stacktrace=1:halt_on_error=1' \
-make clean
+run_limited make clean
 
-ASAN_OPTIONS='detect_leaks=1:halt_on_error=1' \
-UBSAN_OPTIONS='print_stacktrace=1:halt_on_error=1' \
-make CC=clang \
+run_limited env \
+    ASAN_OPTIONS='detect_leaks=1:halt_on_error=1' \
+    UBSAN_OPTIONS='print_stacktrace=1:halt_on_error=1' \
+    CC=clang \
     CFLAGS='-std=c17 -Wall -Wextra -Wpedantic -g3 -O1 -fsanitize=address,undefined -Iinclude' \
-    LDFLAGS='-fsanitize=address,undefined -lm' test
+    LDFLAGS='-fsanitize=address,undefined -lm' make test
 
 printf 'CONTROL67_RESULT=PASS\nLOG_FILE=%s\n' "$LOG_FILE"
