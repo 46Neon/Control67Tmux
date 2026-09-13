@@ -1,0 +1,33 @@
+name: Milena baseline benchmarks
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: control67-benchmarks
+  cancel-in-progress: false
+
+jobs:
+  benchmarks:
+    runs-on: [self-hosted, linux, ARM64, milena-proot]
+    timeout-minutes: 60
+    steps:
+      - name: Checkout Control67Tmux
+        uses: actions/checkout@v4
+
+      - name: Run baseline benchmarks
+        env:
+          CONTROL67_ARTIFACT_DIR: ${{ runner.temp }}/control67-benchmarks
+          CONTROL67_RUN_BENCHMARKS: '1'
+        run: bash scripts/validate-proot.sh
+
+      - name: Upload benchmark artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: control67-benchmarks-${{ github.run_id }}
+          path: ${{ runner.temp }}/control67-benchmarks
+          if-no-files-found: warn
