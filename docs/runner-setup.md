@@ -18,6 +18,24 @@ Termux es el anfitrión. Las pruebas Linux compatibles deben ejecutarse en Debia
 - permisos de administrador del repositorio;
 - una versión concreta de `actions/runner` compatible con ARM64.
 
+## Preparar el dispositivo
+
+En Termux nativo:
+
+```bash
+bash scripts/bootstrap-termux.sh
+proot-distro install debian
+proot-distro login debian
+```
+
+Dentro de Debian:
+
+```bash
+bash scripts/bootstrap-debian.sh
+```
+
+Los scripts de preparación no registran runners y no solicitan tokens.
+
 ## Obtener el token
 
 El token de registro de GitHub es temporal. Debe obtenerse desde la configuración del repositorio y pasarse únicamente mediante una variable de entorno. Nunca debe escribirse en un archivo, commit, log o mensaje.
@@ -33,7 +51,13 @@ bash /ruta/a/Control67Tmux/scripts/install-runner.sh proot
 unset RUNNER_TOKEN
 ```
 
-Después, iniciar el runner según el mecanismo local elegido. No exponer su puerto ni crear un webhook que ejecute comandos.
+Después, iniciar el runner según el mecanismo local elegido:
+
+```bash
+bash /ruta/a/Control67Tmux/scripts/start-runner.sh proot
+```
+
+No exponer su puerto ni crear un webhook que ejecute comandos. El runner mantiene una conexión saliente hacia GitHub; no necesita abrir puertos entrantes.
 
 ## Runner Termux nativo
 
@@ -44,6 +68,7 @@ export RUNNER_TOKEN='TOKEN_TEMPORAL'
 export RUNNER_VERSION='VERSION_PUBLICADA'
 bash /ruta/a/Control67Tmux/scripts/install-runner.sh termux
 unset RUNNER_TOKEN
+bash /ruta/a/Control67Tmux/scripts/start-runner.sh termux
 ```
 
 ## Política de seguridad
