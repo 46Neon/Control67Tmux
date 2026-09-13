@@ -18,12 +18,15 @@ jobs:
       - name: Checkout Control67Tmux
         uses: actions/checkout@v4
 
-      - name: Preflight
-        run: bash scripts/runner-preflight.sh termux
-
       - name: Validate Milena nativamente en Termux
-        run: bash scripts/termux-native.sh
+        env:
+          CONTROL67_ARTIFACT_DIR: ${{ runner.temp }}/control67-artifacts-termux
+        run: bash scripts/validate-termux.sh
 
-      - name: Collect diagnostics on failure
-        if: failure()
-        run: bash scripts/collect-diagnostics.sh || true
+      - name: Upload validation artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: control67-termux-${{ github.run_id }}
+          path: ${{ runner.temp }}/control67-artifacts-termux
+          if-no-files-found: warn
