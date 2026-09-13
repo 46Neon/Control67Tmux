@@ -1,0 +1,31 @@
+name: Milena CI - Debian proot ARM64
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: control67-proot-main
+  cancel-in-progress: false
+
+jobs:
+  milena-proot:
+    runs-on: [self-hosted, linux, ARM64, milena-proot]
+    timeout-minutes: 45
+    steps:
+      - name: Checkout Control67Tmux
+        uses: actions/checkout@v4
+
+      - name: Preflight
+        run: bash scripts/runner-preflight.sh proot
+
+      - name: Validate Milena
+        run: bash scripts/ci-milena-proot.sh
+
+      - name: Collect diagnostics on failure
+        if: failure()
+        run: bash scripts/collect-diagnostics.sh || true
